@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+    {% if site.description %}
+    <meta name="description" content="{{ site.description }}">
+    {% endif %}
+    <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+</head>
+
+<body>
+    <script>
+        (function () {
+            var storedTheme = localStorage.getItem('theme');
+            var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var theme = storedTheme || (prefersDark ? 'dark' : 'light');
+            document.documentElement.dataset.theme = theme;
+        })();
+    </script>
+    <header class="site-header">
+        <div class="container">
+            <a class="site-title" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+            {% if site.navigation %}
+            <nav class="site-nav">
+                {% for item in site.navigation %}
+                <a href="{{ item.url | relative_url }}">{{ item.title }}</a>
+                {% endfor %}
+                <button class="theme-toggle" type="button" aria-label="Toggle theme">
+                    <svg class="theme-icon theme-icon--sun" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="5.75" fill="none" stroke-width="1.5" />
+                        <g stroke-linecap="round" stroke-width="1.5">
+                            <line x1="12" y1="2.5" x2="12" y2="5.2" />
+                            <line x1="12" y1="18.8" x2="12" y2="21.5" />
+                            <line x1="4.22" y1="4.22" x2="6.17" y2="6.17" />
+                            <line x1="17.83" y1="17.83" x2="19.78" y2="19.78" />
+                            <line x1="2.5" y1="12" x2="5.2" y2="12" />
+                            <line x1="18.8" y1="12" x2="21.5" y2="12" />
+                            <line x1="4.22" y1="19.78" x2="6.17" y2="17.83" />
+                            <line x1="17.83" y1="6.17" x2="19.78" y2="4.22" />
+                        </g>
+                    </svg>
+                    <svg class="theme-icon theme-icon--moon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M21 13.5a8.5 8.5 0 1 1-10.5-10.5a7 7 0 1 0 10.5 10.5z" fill="none"
+                            stroke-width="1.5" />
+                    </svg>
+                </button>
+            </nav>
+            {% endif %}
+        </div>
+    </header>
+    <main class="site-content container">
+        {{ content }}
+    </main>
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; {{ site.time | date: "%Y" }} {{ site.title }}</p>
+        </div>
+    </footer>
+    <script>
+        (function () {
+            var LANGUAGE_ALIASES = {
+                plaintext: "Text",
+                text: "Text",
+                sh: "Shell",
+                shell: "Shell",
+                bash: "Shell",
+                console: "Console",
+                powershell: "PowerShell",
+                ps1: "PowerShell",
+                json: "JSON",
+                yaml: "YAML",
+                yml: "YAML",
+                toml: "TOML",
+                ini: "INI",
+                html: "HTML",
+                css: "CSS",
+                js: "JavaScript",
+                javascript: "JavaScript",
+                ts: "TypeScript",
+                typescript: "TypeScript",
+                md: "Markdown",
+                markdown: "Markdown",
+                sql: "SQL",
+                xml: "XML",
+                env: ".env",
+                dockerfile: "Dockerfile",
+                go: "Go",
+                rb: "Ruby",
+                py: "Python",
+                cs: "C#"
+            };
+
+            function ready(fn) {
+                if (document.readyState === "loading") {
+                    document.addEventListener("DOMContentLoaded", fn);
+                } else {
+                    fn();
+                }
+            }
+
+            function formatLanguage(classList) {
+                var language = "";
+                for (var i = 0; i < classList.length; i++) {
+                    var cls = classList[i];
+                    if (cls.indexOf("language-") === 0) {
+                        language = cls.slice(9);
+                        break;
+                    }
+                }
+                if (!language) {
+                    return "Code";
+                }
+                var lower = language.toLowerCase();
+                if (Object.prototype.hasOwnProperty.call(LANGUAGE_ALIASES, lower)) {
+                    return LANGUAGE_ALIASES[lower];
+                }
+                return language.replace(/-/g, " ").replace(/\b\w/g, function (char) {
+                    return char.toUpperCase();
+                });
+            }
+
+            function fallbackCopy(text) {
+                return new Promise(function (resolve, reject) {
+                    var textarea = document.createElement("textarea");
+                    textarea.value = text;
+                    textarea.setAttribute("readonly", "");
+                    textarea.style.position = "fixed";
+                    textarea.style.top = "-9999px";
+                    textarea.style.opacity = "0";
+                    document.body.appendChild(textarea);
+                    textarea.focus();
+                    textarea.select();
+                    textarea.setSelectionRange(0, textarea.value.length);
+                    try {
+                        var successful = document.execCommand("copy");
+                        document.body.removeChild(textarea);
+                        if (successful) {
+                            resolve();
+                        } else {
+                            reject(new Error("Copy command unsuccessful"));
+                        }
+                    } catch (err) {
+                        document.body.removeChild(textarea);
+                        reject(err);
+                    }
+                });
+            }
+
+            function sanitizeText(text) {
+                return (text || "").replace(/\s+$/, "");
+            }
+
+            function bindCopy(button, getText) {
+                button.addEventListener("click", function () {
+                    var text = sanitizeText(getText());
+                    var copyOperation;
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        copyOperation = navigator.clipboard.writeText(text);
+                    } else {
+                        copyOperation = fallbackCopy(text);
+                    }
+
+                    copyOperation.then(function () {
+                        button.classList.remove("is-error");
+                        button.classList.add("is-copied");
+                        button.textContent = "Copied";
+                        button.setAttribute("aria-label", "Copied to clipboard");
+                        clearTimeout(button._resetTimer);
+                        button._resetTimer = setTimeout(function () {
+                            button.classList.remove("is-copied");
+                            button.textContent = button.dataset.defaultText;
+                            button.setAttribute("aria-label", button.dataset.defaultLabel);
+                        }, 2000);
+                    }).catch(function () {
+                        button.classList.remove("is-copied");
+                        button.classList.add("is-error");
+                        button.textContent = "Copy failed";
+                        button.setAttribute("aria-label", "Copy failed");
+                        clearTimeout(button._resetTimer);
+                        button._resetTimer = setTimeout(function () {
+                            button.classList.remove("is-error");
+                            button.textContent = button.dataset.defaultText;
+                            button.setAttribute("aria-label", button.dataset.defaultLabel);
+                        }, 2000);
+                    });
+                });
+            }
+
+            function enhance(block) {
+                if (!block || block.dataset.enhanced === "true") {
+                    return;
+                }
+                var pre = block.querySelector("pre");
+                if (!pre) {
+                    return;
+                }
+
+                block.dataset.enhanced = "true";
+                block.classList.add("code-block");
+
+                var header = document.createElement("div");
+                header.className = "code-block__header";
+
+                var label = document.createElement("span");
+                label.className = "code-block__lang";
+                label.textContent = formatLanguage(block.classList);
+                header.appendChild(label);
+
+                var button = document.createElement("button");
+                button.type = "button";
+                button.className = "code-block__copy";
+                button.textContent = "Copy";
+                button.setAttribute("aria-label", "Copy code to clipboard");
+                button.dataset.defaultText = "Copy";
+                button.dataset.defaultLabel = "Copy code to clipboard";
+                header.appendChild(button);
+
+                block.insertBefore(header, block.firstChild);
+
+                bindCopy(button, function () {
+                    return pre.innerText || pre.textContent || "";
+                });
+            }
+
+            function enhanceRequestResponseColumn(column) {
+                if (!column || column.dataset.copyEnhanced === "true") {
+                    return;
+                }
+
+                var badge = column.querySelector(".request-response-panel__badge");
+                var snippets = column.querySelectorAll("pre");
+                if (!badge || !snippets.length) {
+                    return;
+                }
+
+                column.dataset.copyEnhanced = "true";
+
+                var toolbar = document.createElement("div");
+                toolbar.className = "request-response-panel__toolbar";
+                column.insertBefore(toolbar, badge);
+                toolbar.appendChild(badge);
+
+                var button = document.createElement("button");
+                button.type = "button";
+                button.className = "request-response-panel__copy";
+                button.textContent = "Copy";
+                var labelText = (badge.textContent || "content").toLowerCase();
+                button.setAttribute("aria-label", "Copy " + labelText + " to clipboard");
+                button.dataset.defaultText = "Copy";
+                button.dataset.defaultLabel = "Copy " + labelText + " to clipboard";
+                toolbar.appendChild(button);
+
+                bindCopy(button, function () {
+                    var combined = [];
+                    for (var i = 0; i < snippets.length; i++) {
+                        combined.push(snippets[i].innerText || snippets[i].textContent || "");
+                    }
+                    return combined.join("\n\n");
+                });
+            }
+
+            function init() {
+                var blocks = document.querySelectorAll(".post-content .highlighter-rouge");
+                for (var i = 0; i < blocks.length; i++) {
+                    enhance(blocks[i]);
+                }
+
+                var flowColumns = document.querySelectorAll(".post-content .request-response-panel__column");
+                for (var j = 0; j < flowColumns.length; j++) {
+                    enhanceRequestResponseColumn(flowColumns[j]);
+                }
+            }
+
+            ready(init);
+        })();
+    </script>
+    <script>
+        (function () {
+            var toggle = document.querySelector('.theme-toggle');
+            if (!toggle) return;
+            toggle.addEventListener('click', function () {
+                var current = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+                document.documentElement.dataset.theme = current;
+                localStorage.setItem('theme', current);
+            });
+        })();
+    </script>
+</body>
+
+</html>

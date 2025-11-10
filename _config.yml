@@ -1,0 +1,24 @@
+title: "Mtib's Blog"
+description: "Hey there, I'm Matei Buzdea (also known as \"mtib\"), a wannabe security researcher. These are some of the most interesting (at least for me) security issues I've found or read about over the years."
+
+# If your site is a user/organization site (username.github.io), leave these empty:
+url: ""
+baseurl: ""
+
+# Simple top menu (only what you want)
+navigation:
+  - title: Posts
+    url: /
+  - title: About
+    url: /about/
+
+# Permalink = clean slugs like /my-post/
+permalink: /:slug/
+timezone: Europe/Bucharest
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    css_class: highlight
+highlighter: rouge
